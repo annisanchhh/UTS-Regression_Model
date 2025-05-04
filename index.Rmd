@@ -26,18 +26,26 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Soal 1
 ### Langkah 1 Buat Correlation Matrix
-```{r}
-library(ggplot2)
-library(corrplot)
-library(readr)
-library(dplyr)
+
+```{r, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages({
+  library(ggplot2)
+  library(corrplot)
+  library(readr)
+  library(dplyr)
+})
 
 data <- read_csv("HeatingOil.csv")
 
 cor_matrix <- cor(data)
 print(cor_matrix)
-corrplot(cor_matrix, method = "color", addCoef.col = "black", tl.cex = 0.8)
+corrplot(cor_matrix, method = "color", addCoef.col = "black", tl.cex = 0.6)
+
+
 ```
+
+
+
 
 ### Langkah 2 Interpretasi Correlation Matrix
 
@@ -46,13 +54,11 @@ corrplot(cor_matrix, method = "color", addCoef.col = "black", tl.cex = 0.8)
 
 Berdasarkan matriks korelasi, variabel yang memiliki hubungan kuat dengan Heating_Oil adalah:
 
-1. Avg_Age memiliki korelasi positif sangat kuat sebesar +0.85. Ini menunjukkan bahwa rumah dengan penghuni lebih tua cenderung lebih banyak menggunakan Heating_Oil.
-
-2. Temperature memiliki korelasi negatif kuat sebesar -0.77, artinya saat suhu lingkungan lebih tinggi, konsumsi Heating_Oil menurun.
-
-3. Insulation menunjukkan korelasi positif kuat sebesar +0.74, meskipun secara logika seharusnya berkorelasi negatif. Ini bisa terjadi karena representasi nilai isolasi dalam data justru berbanding terbalik dengan kualitas isolasi.
-
-4. Variabel lain seperti Num_Occupants memiliki korelasi yang sangat lemah (-0.04), sehingga tidak dianggap signifikan dalam analisis ini.
+1. Avg_Age memiliki korelasi positif sangat kuat sebesar +0.8479. Artinya, rumah dengan penghuni yang lebih tua cenderung mengonsumsi lebih banyak Heating_Oil. Hal ini logis, karena lansia biasanya lebih sensitif terhadap suhu dingin dan lebih sering membutuhkan pemanas.
+2. Temperature menunjukkan korelasi negatif kuat sebesar -0.7737. Semakin tinggi suhu lingkungan, konsumsi Heating_Oil cenderung menurun. Ini sangat masuk akal karena pada suhu yang lebih hangat, pemanas tidak terlalu dibutuhkan.
+3. Insulation menunjukkan korelasi positif kuat sebesar +0.7361, yang secara teori agak tidak biasa. Seharusnya isolasi yang baik menurunkan konsumsi pemanas. Hasil ini bisa jadi disebabkan oleh kualitas data, variabel lain yang memengaruhi, atau bahkan efek confounding yang belum teridentifikasi.
+4. Home_Size memiliki korelasi positif sedang sebesar +0.3811. Rumah yang lebih besar cenderung menggunakan lebih banyak Heating_Oil, kemungkinan karena ruang yang lebih luas memerlukan energi pemanas lebih banyak.
+5. Num_Occupants hanya menunjukkan korelasi negatif sangat lemah sebesar -0.0416, yang berarti hampir tidak ada hubungan antara jumlah penghuni dengan konsumsi Heating_Oil. Variabel ini bisa dianggap tidak signifikan dalam konteks ini.
 
 Kesimpulan
 Faktor yang paling memengaruhi konsumsi Heating_Oil dalam data ini adalah:
@@ -130,10 +136,16 @@ write.csv(new_data, "hasil_prediksi_pelanggan_baru.csv", row.names = FALSE)
 head(new_data[, c("Insulation", "Temperature", "Predicted_Heating_Oil")], 10)  # Contoh tampilan
 
 ```
+#### Visualisasi Prediksi
+```{r plot_prediksi, message=FALSE, warning=FALSE}
+ggplot(new_data, aes(x = 1:nrow(new_data), y = Predicted_Heating_Oil)) +
+  geom_point(color = "steelblue", size = 2) +
+  labs(
+    title = "Prediksi Kebutuhan Minyak Pemanas per Pelanggan",
+    x = "Index Pelanggan",
+    y = "Prediksi Heating Oil (gallons)"
+  ) +
+  theme_minimal()
 
+```
 
-
-
-
-
-# Referensi
