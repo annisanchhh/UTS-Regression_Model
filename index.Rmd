@@ -1,7 +1,7 @@
 ---
-title: "My document"
+title: "Regression Model"
 date: "`r Sys.Date()`"
-author: Annisa Nur Cahyani-Institut Teknologi Statistika dan Bisnis Muhammadiyah Semarang
+author: Annisa Nur Cahyani-A3202300030-Rekayasa Perangkat Lunak
 output:
   rmdformats::readthedown:
     self_contained: true
@@ -25,23 +25,21 @@ knitr::opts_chunk$set(echo = TRUE)
 # UTS-Regression Model 
 
 ## Soal 1
-Langkah 1 Buat Correlation Matrix
+### Langkah 1 Buat Correlation Matrix
 ```{r}
 library(ggplot2)
 library(corrplot)
 library(readr)
 library(dplyr)
 
-# 2. Baca data utama
 data <- read_csv("HeatingOil.csv")
 
-# 3. Buat Correlation Matrix dan visualisasinya (Langkah 1)
 cor_matrix <- cor(data)
 print(cor_matrix)
 corrplot(cor_matrix, method = "color", addCoef.col = "black", tl.cex = 0.8)
 ```
 
-Langkah 2 Interpretasi Correlation Matrix
+### Langkah 2 Interpretasi Correlation Matrix
 
 ![correlation matrix](matriks.png)
 
@@ -69,7 +67,6 @@ Langkah 3: Scatter Plot 1
 Plot ini dibuat untuk melihat apakah terdapat hubungan antara **usia rata-rata penghuni rumah** (`Avg_Age`) dengan **jumlah konsumsi minyak pemanas** (`Heating_Oil`). Warna titik digunakan untuk menunjukkan intensitas konsumsi Heating_Oil, dari biru (rendah) ke merah (tinggi).
 
 ```{r}
-# 5. Scatter Plot 1: Heating_Oil vs Avg_Age (Langkah 3)
 ggplot(data, aes(x = Heating_Oil, y = Avg_Age, color = Heating_Oil)) +
   geom_point() +
   scale_color_gradient(low = "blue", high = "red") +
@@ -80,16 +77,61 @@ ggplot(data, aes(x = Heating_Oil, y = Avg_Age, color = Heating_Oil)) +
 
 Terdapat hubungan yang cukup kuat antara usia rata-rata penghuni rumah dan jumlah konsumsi Heating_Oil. Visualisasi ini mendukung hasil correlation matrix sebelumnya (dengan nilai korelasi sekitar +0.85) dan memperkuat dugaan bahwa faktor demografis seperti usia dapat memengaruhi kebiasaan konsumsi energi rumah tangga.
 
-Langkah 4: Scatter Plot 2
+### Langkah 4: Scatter Plot 2
 ```{r}
-# 6. Scatter Plot 2: Temperature vs Insulation (warna berdasarkan Heating_Oil) (Langkah 4)
 ggplot(data, aes(x = Temperature, y = Insulation, color = Heating_Oil)) +
   geom_point() +
-  scale_color_gradient(low = "green", high = "red") +
+  scale_color_viridis_c(option = "plasma") +
   theme_minimal() +
-  labs(title = "Temperature vs Insulation (colored by Heating Oil)", x = "Temperature", y = "Insulation")
+  labs(title = "Temperature vs Insulation (colored by Heating Oil)",
+       x = "Temperature", y = "Insulation")
+```
+
+Berdasarkan plot yang menggunakan skema warna viridis, terlihat bahwa pada suhu yang lebih tinggi dan insulasi yang lebih rendah, konsumsi Heating_Oil justru cenderung rendah, yang ditunjukkan dengan warna ungu hingga biru (nilai rendah). Sebaliknya, pada kondisi suhu rendah meskipun insulasi tinggi, warna titik berubah menjadi orange hingga kuning terang yang mengindikasikan konsumsi Heating_Oil tinggi. Hal ini menunjukkan bahwa insulasi memang membantu mengurangi penggunaan energi, tetapi tidak cukup efektif apabila suhu lingkungan sangat rendah. Sementara itu, pada suhu yang lebih hangat, kebutuhan pemanasan tetap rendah meskipun tanpa insulasi yang optimal. Dengan kata lain, pengaruh suhu terhadap konsumsi energi lebih dominan dibandingkan insulasi dalam konteks ini.
+
+### Langkah 5: Rekomendasi untuk Sarah
+Berdasarkan hasil analisis data, saya menyarankan agar Sarah memfokuskan promosi Heating_Oil pada rumah tangga dengan penghuni lansia, karena terdapat korelasi positif yang sangat kuat (+0.85) antara usia penghuni dan konsumsi minyak pemanas. Selain itu, wilayah dengan suhu rendah juga perlu menjadi fokus utama, mengingat korelasi negatif yang kuat (-0.77) antara suhu dan konsumsi Heating_Oil, yang menunjukkan bahwa permintaan akan lebih tinggi di wilayah tersebut. Selain itu, rumah dengan isolasi buruk (korelasi positif +0.74) perlu menjadi target, terutama rumah yang belum direnovasi secara termal. Saya juga berpikir Sarah bisa membuat segmentasi berdasarkan ukuran rumah (+0.38), dengan menawarkan paket khusus untuk pemilik rumah besar yang lebih banyak mengonsumsi energi pemanas. Strategi ini bisa membantu menjangkau pasar yang lebih tepat sasaran.
+
+
+## Soal 2
+### Tugas Sarah (Membuat & Menyimpan Model)
+```{r}
+# File Sarah_build_model.R
+heating_oil_data <- read.csv("HeatingOil.csv")
+
+# Gunakan variabel yang sesuai dari dataset
+model <- lm(Heating_Oil ~ Insulation + Temperature + Avg_Age + Home_Size, 
+            data = heating_oil_data)
+
+# Simpan model
+saveRDS(model, "heating_oil_model.rds")
+```
+### Tugas Marketer (Memprediksi Data Baru)
+```{r}
+# Langkah 1: Muat model yang sudah disimpan Sarah
+model <- readRDS("heating_oil_model.rds")  # Pastikan file model ada di folder yang sama
+
+# Langkah 2: Baca data calon pelanggan baru
+new_data <- read.csv("HeatingOil-Marketing.csv")  
+
+# Langkah 3: Validasi kolom (pastikan sesuai dengan model)
+required_cols <- c("Insulation", "Temperature", "Avg_Age", "Home_Size")  # Sesuaikan dengan variabel di model
+if (!all(required_cols %in% colnames(new_data))) {
+  stop("ERROR: Kolom di data baru tidak sesuai dengan model! Periksa nama kolom.")
+}
+
+# Langkah 4: Prediksi kebutuhan minyak
+new_data$Predicted_Heating_Oil <- predict(model, newdata = new_data)
+
+# Langkah 5: Simpan hasil (opsional)
+write.csv(new_data, "hasil_prediksi_pelanggan_baru.csv", row.names = FALSE)
+
+# Langkah 6: Tampilkan hasil prediksi
+head(new_data[, c("Insulation", "Temperature", "Predicted_Heating_Oil")], 10)  # Contoh tampilan
 
 ```
+
+
 
 
 
